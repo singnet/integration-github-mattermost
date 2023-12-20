@@ -17,6 +17,9 @@ inputs:
   icon:
     required: false
     type: string
+branding:
+  icon: "bell"
+  color: "red"
 runs:
   using: "docker"
   image: "Dockerfile"
