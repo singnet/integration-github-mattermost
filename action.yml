@@ -1,0 +1,6 @@
+name: 'Mattermost'
+description: 'Send message to your Mattermost instance'
+author: Singnet
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

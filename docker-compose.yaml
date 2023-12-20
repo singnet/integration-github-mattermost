@@ -1,0 +1,8 @@
+version: "3.9"
+
+services:
+  mattermost-notify:
+    container_name: mattermost-notify
+    build: .
+    env_file:
+      - .env

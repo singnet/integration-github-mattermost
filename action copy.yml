@@ -1,0 +1,28 @@
+name: "Mattermost Notify"
+description: "Send message to your Mattermost instance"
+author: Singnet
+inputs:
+  webhook-url:
+    required: true
+    type: string
+  message:
+    required: true
+    type: string
+  channel:
+    required: false
+    type: string
+  username:
+    required: false
+    type: string
+  icon:
+    required: false
+    type: string
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  env:
+    MATTERMOST_WEBHOOK_URL: ${{ inputs.webhook-url }}
+    MATTERMOST_MESSAGE: ${{ inputs.message }}
+    MATTERMOST_CHANNEL: ${{ inputs.channel }}
+    MATTERMOST_USERNAME: ${{ inputs.username }}
+    MATTERMOST_ICON: ${{ inputs.icon }}
