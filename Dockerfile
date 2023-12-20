@@ -15,4 +15,4 @@ WORKDIR mattermost
 COPY . .
 
 ENTRYPOINT ["python3"]
-CMD ["main.py"]
+CMD ["/mattermost/main.py"]
