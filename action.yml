@@ -3,20 +3,20 @@ description: "Send message to your Mattermost instance"
 author: Singnet
 inputs:
   webhook-url:
+    description: "The URL of the Mattermost webhook"
     required: true
-    type: string
   message:
+    description: "The message to send to Mattermost"
     required: true
-    type: string
   channel:
+    description: "The channel on Mattermost to post the message (optional)"
     required: false
-    type: string
   username:
+    description: "The username for posting on Mattermost (optional)"
     required: false
-    type: string
   icon:
+    description: "The icon for the post on Mattermost (optional)"
     required: false
-    type: string
 branding:
   icon: "bell"
   color: "red"
