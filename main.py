@@ -6,6 +6,7 @@ from mattermost import read_message, send, is_empty, log_error
 def main():
     msg = {}
 
+    print(os.environ)
     mattermost_msg = os.getenv("MATTERMOST_MESSAGE")
     if mattermost_msg is not None:
         msg["text"] = mattermost_msg
