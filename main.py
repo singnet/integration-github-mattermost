@@ -7,7 +7,7 @@ def main():
     msg = {}
 
     mattermost_msg = os.getenv("MATTERMOST_MESSAGE")
-    if mattermost_msg is not None:
+    if mattermost_msg:
         msg["text"] = mattermost_msg
     else:
         msg = read_message("mattermost.json")
