@@ -3,6 +3,9 @@ import requests
 import sys
 
 
+__version__= "0.1.0"
+
+
 def read_message(file_name):
     try:
         with open(file_name, "r") as file:
