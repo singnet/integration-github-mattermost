@@ -1,8 +1,22 @@
 import io
-import requests
 import json
-from unittest.mock import patch, mock_open
-from mattermost import read_message, send, is_empty, log_error
+from unittest.mock import mock_open, patch
+
+import pytest
+import requests
+
+from mattermost import (
+    APICallError,
+    create_direct_channel,
+    get_me,
+    get_user_by_email,
+    get_user_by_username,
+    is_empty,
+    log_error,
+    read_message,
+    send,
+    send_message,
+)
 
 
 def test_read_message_file_not_found(capsys):
@@ -92,3 +106,175 @@ def test_log_error(capsys):
         assert e.code == 1
     else:
         assert False, "log_error did not raise a SystemExit exception"
+
+
+def test_get_user_by_email(monkeypatch):
+    def mock_get(*args, **kwargs):
+        class MockResponse:
+            status_code = 200
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return {"email": "test@mail"}
+
+        return MockResponse()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    server_url = "http://test.com"
+    token = "test_token"
+
+    user = get_user_by_email(server_url, token, "test@mail")
+    assert user == {"email": "test@mail"}
+
+
+def test_get_user_by_email_failed(monkeypatch):
+    def mock_get(*args, **kwargs):
+        raise requests.exceptions.RequestException()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    email = "test@mail"
+    server_url = "http://test.com"
+    token = "test_token"
+    error_message = (
+        f"Error getting user by email: GET http://test.com/api/v4/users/email/{email}"
+    )
+
+    with pytest.raises(APICallError) as e:
+        get_user_by_email(server_url, token, email)
+
+    assert (
+        str(e.value) == error_message
+    ), f"Expected: {error_message}, got: {str(e.value)}"
+
+
+def test_get_user_by_username(monkeypatch):
+    def mock_get(*args, **kwargs):
+        class MockResponse:
+            status_code = 200
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return {"username": "test_user"}
+
+        return MockResponse()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    server_url = "http://test.com"
+    token = "test_token"
+
+    user = get_user_by_email(server_url, token, "test_user")
+    assert user == {"username": "test_user"}
+
+
+def test_get_user_by_username_failed(monkeypatch):
+    def mock_get(*args, **kwargs):
+        raise requests.exceptions.RequestException()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    username = "test_user"
+    server_url = "http://test.com"
+    token = "test_token"
+    error_message = f"Error getting user by username: GET http://test.com/api/v4/users/username/{username}"
+
+    with pytest.raises(APICallError) as e:
+        get_user_by_username(server_url, token, username)
+
+    assert (
+        str(e.value) == error_message
+    ), f"Expected: {error_message}, got: {str(e.value)}"
+
+
+def test_send_message(monkeypatch):
+    def mock_post(*args, **kwargs):
+        class MockResponse:
+            status_code = 200
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return {"channel_id": "test_channel_id"}
+
+        return MockResponse()
+
+    monkeypatch.setattr(requests, "post", mock_post)
+
+    server_url = "http://test.com"
+    token = "test_token"
+    channel_id = "test_channel_id"
+    message = "test_message"
+
+    response = send_message(server_url, token, channel_id, message)
+    assert response == {"channel_id": "test_channel_id"}
+
+
+def test_create_direct_channel(monkeypatch):
+    def mock_post(*args, **kwargs):
+        class MockResponse:
+            status_code = 200
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return {"id": "test_channel_id"}
+
+        return MockResponse()
+
+    monkeypatch.setattr(requests, "post", mock_post)
+
+    server_url = "http://test.com"
+    token = "test_token"
+    user1_id = "test_user1_id"
+    user2_id = "test_user2_id"
+
+    response = create_direct_channel(server_url, token, user1_id, user2_id)
+    assert response == {"id": "test_channel_id"}
+
+
+def test_get_me(monkeypatch):
+    def mock_get(*args, **kwargs):
+        class MockResponse:
+            status_code = 200
+
+            def raise_for_status(self):
+                pass
+
+            def json(self):
+                return {"username": "me"}
+
+        return MockResponse()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    server_url = "http://test.com"
+    token = "test_token"
+
+    user = get_me(server_url, token)
+    assert user == {"username": "me"}
+
+
+def test_get_me_failed(monkeypatch):
+    def mock_get(*args, **kwargs):
+        raise requests.exceptions.RequestException()
+
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    server_url = "http://test.com"
+    token = "test_token"
+    error_message = f"Error getting current user: GET http://test.com/api/v4/users/me"
+
+    with pytest.raises(APICallError) as e:
+        get_me(server_url, token)
+
+    assert (
+        str(e.value) == error_message
+    ), f"Expected: {error_message}, got: {str(e.value)}"
