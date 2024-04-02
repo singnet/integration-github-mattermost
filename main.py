@@ -1,6 +1,7 @@
 import os
 import sys
-from mattermost import read_message, send, is_empty, log_error
+
+from mattermost import is_empty, log_error, read_message, send
 
 
 def main():
