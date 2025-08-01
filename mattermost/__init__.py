@@ -7,6 +7,8 @@ import requests
 
 __version__ = "0.2.0"
 
+MAX_ATTACHMENTS_PER_MESSAGE = 10
+
 
 def read_message(file_name):
     try:
@@ -135,7 +137,14 @@ def send_message(
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        raise APICallError(f"Error sending message: POST {url}") from e
+        try:
+            error_detail = response.json()
+        except Exception:
+            error_detail = response.text if "response" in locals() else str(e)
+
+        raise APICallError(
+            f"Error sending message: POST {url} | Server response: {error_detail}"
+        ) from e
 
 
 def create_direct_channel(url: str, token: str, from_user_id, to_user_id: str):
@@ -195,7 +204,11 @@ def _upload_single_file(
 
 
 def upload_files(
-    server_url: str, token: str, channel_id: str, paths: list[str]
+    server_url: str,
+    token: str,
+    channel_id: str,
+    paths: list[str],
+    max_files: int = MAX_ATTACHMENTS_PER_MESSAGE,
 ) -> list[str]:
     """Upload one or more files or directories to Mattermost.
 
@@ -208,22 +221,37 @@ def upload_files(
         token: Mattermost API token for authentication.
         channel_id: The ID of the channel to which the files will be uploaded.
         paths: List of file paths or directory paths to upload.
+        max_files: Limit max file to be sent
 
     Returns:
         A list of file_ids corresponding to the uploaded files.
     """
     headers = _build_auth_header(token)
     file_ids = []
+    count = 0
 
     for path in paths:
+        if count >= max_files:
+            print(
+                f"[WARN] Limit of {max_files} files reached. Skipping remaining files."
+            )
+            break
+
         if os.path.isdir(path):
             for root, _, files in os.walk(path):
-                for fname in files:
+                for fname in sorted(files):
+                    if count >= max_files:
+                        break
+
                     file_ids.append(
                         _upload_single_file(
-                            server_url, headers, channel_id, os.path.join(root, fname)
+                            server_url,
+                            headers,
+                            channel_id,
+                            os.path.join(root, fname),
                         )
                     )
+                    count += 1
         elif os.path.isfile(path):
             file_ids.append(_upload_single_file(server_url, headers, channel_id, path))
         else:
