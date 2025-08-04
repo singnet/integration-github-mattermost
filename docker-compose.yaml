@@ -3,6 +3,8 @@ version: "3.9"
 services:
   mattermost-notify:
     container_name: mattermost-notify
+    volumes:
+      - /tmp:/tmp
     build: .
     env_file:
       - .env

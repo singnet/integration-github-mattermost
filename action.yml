@@ -1,22 +1,23 @@
 name: "Integration Github Mattermost"
-description: "Send message to your Mattermost instance"
+description: "Send a message (with optional attachments) to your Mattermost instance via API"
 author: Singnet
 inputs:
-  webhook-url:
-    description: "The URL of the Mattermost webhook"
+  server-url:
+    description: "Base URL of the Mattermost server (e.g., https://mattermost.example.com)"
+    required: true
+  token:
+    description: "Mattermost personal access token for authentication"
+    required: true
+  channel-id:
+    description: "The ID of the Mattermost channel where the message will be posted"
     required: true
   message:
-    description: "The message to send to Mattermost"
+    description: "The text content of the message to send"
     required: true
-  channel:
-    description: "The channel on Mattermost to post the message (optional)"
+  attachments-path:
+    description: "Comma-separated list of file paths or directories to upload as attachments (optional)"
     required: false
-  username:
-    description: "The username for posting on Mattermost (optional)"
-    required: false
-  icon:
-    description: "The icon for the post on Mattermost (optional)"
-    required: false
+
 branding:
   icon: "bell"
   color: "red"
@@ -24,8 +25,8 @@ runs:
   using: "docker"
   image: "Dockerfile"
   env:
-    MATTERMOST_WEBHOOK_URL: ${{ inputs.webhook-url }}
+    MATTERMOST_SERVER_URL: ${{ inputs.server-url }}
+    MATTERMOST_TOKEN: ${{ inputs.token }}
+    MATTERMOST_CHANNEL_ID: ${{ inputs.channel-id }}
     MATTERMOST_MESSAGE: ${{ inputs.message }}
-    MATTERMOST_CHANNEL: ${{ inputs.channel }}
-    MATTERMOST_USERNAME: ${{ inputs.username }}
-    MATTERMOST_ICON: ${{ inputs.icon }}
+    MATTERMOST_ATTACHMENTS_PATH: ${{ inputs.attachments-path }}
